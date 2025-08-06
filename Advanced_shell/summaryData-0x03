@@ -26,6 +26,9 @@ done
 average_height=$(echo "$total_height $count" | awk '{printf "%.2f", $1/$2}')
 average_weight=$(echo "$total_weight $count" | awk '{printf "%.2f", $1/$2}')
 
+average_height=$(echo "$average_height" | sed 's/^/ /')
+average_weight=$(echo "$average_weight" | sed 's/^/ /')
+
 echo "" >> "$OUTPUT_CSV"
 echo "Average height:$average_height m" >> "$OUTPUT_CSV"
 echo "Average weight:$average_weight kg" >> "$OUTPUT_CSV"
