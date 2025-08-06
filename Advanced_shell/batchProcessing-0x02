@@ -4,6 +4,7 @@ POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 BASE_API_URL="https://pokeapi.co/api/v2/pokemon"
 ERROR_FILE="errors.txt"
 REQUEST_DELAY=1 # Handles rate limiting by adding a 1s delay between requests
+MAX_RETRIES=3
 
 log_error() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')]  ERROR: $1" >> "$ERROR_FILE"
@@ -23,25 +24,38 @@ for pokemon in "${POKEMON_LIST[@]}"; do
     API_URL="${BASE_API_URL}/${pokemon_lower}"
     OUTPUT_FILE="${pokemon_lower}.json"
 
-    response=$(curl -s -w "%{http_code}" "$API_URL" -o "temp_${pokemon_lower}.json")
-    http_code="${response: -3}"
+    attempt=1
+    success=0
+    while [ $attempt -le $MAX_RETRIES ]; do
+        response=$(curl -s -w "%{http_code}" "$API_URL" -o "temp_${pokemon_lower}.json")
+        http_code="${response: -3}"
 
-    if [ "$http_code" -eq 200 ]; then
-        mv "temp_${pokemon_lower}.json" "$OUTPUT_FILE"
-        log_success "$pokemon data fetched successfully and saved to $OUTPUT_FILE"
-        echo "Success, $pokemon data saved to $OUTPUT_FILE"
-        ((successful_downloads++))
-    else
-        error_message="API request for $pokemon failed with HTTP code: $http_code"
+        if [ "$http_code" -eq 200 ]; then
+            mv "temp_${pokemon_lower}.json" "$OUTPUT_FILE"
+            log_success "$pokemon data fetched successfully and saved to $OUTPUT_FILE"
+            echo "Success, $pokemon data saved to $OUTPUT_FILE"
+            ((successful_downloads++))
+            success=1
+            break
+
+        else
+            echo "Attempt $attempt for $pokemon failed (HTTP $http_code)."
+            [ -f "temp_${pokemon_lower}.json" ] && rm "temp_${pokemon_lower}.json"
+            ((attempt++))
+            sleep 1
+        fi
+    done
+
+    if [ $success -eq 0 ]; then
+        error_message="API request for $pokemon failed after $MAX_RETRIES attempts."
         log_error "$error_message"
-        echo "Failed to fetch $pokemon data. Check $ERROR_FILE for details."
-        [ -f "temp_${pokemon_lower}.json" ] && rm "temp_${pokemon_lower}.json"
+        echo "Failed to fetch $pokemon data after $MAX_RETRIES attempts. Check $ERROR_FILE for details."
         ((failed_downloads++))
-        fi
+    fi
 
-        if [ "$pokemon" != "${POKEMON_LIST[-1]}" ]; then
-            sleep $REQUEST_DELAY
-        fi
+    if [ "$pokemon" != "${POKEMON_LIST[-1]}" ]; then
+        sleep $REQUEST_DELAY
+    fi
 
 done
 
