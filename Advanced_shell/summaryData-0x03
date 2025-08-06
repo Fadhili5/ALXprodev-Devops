@@ -1,0 +1,33 @@
+#!/bin/bash
+
+OUTPUT_CSV="pokemon_summary.csv"
+
+echo "Name,Height (m),Weight (kg)" > "$OUTPUT_CSV"
+
+total_height=0
+total_weight=0
+count=0
+
+for file in *.json; do
+    name=$(jq -r '.name' "$file")
+    height=$(jq -r '.height' "$file")
+    weight=$(jq -r '.weight' "$file")
+
+    height_metres=$(echo "$height" | awk '{printf "%.1f", $1/10}')
+    weight_kg=$(echo "$weight" | awk '{printf "%.1f", $1/10}')
+
+    echo "$name,$height_metres,$weight_kg" >> "$OUTPUT_CSV"
+
+    total_height=$(echo "$total_height + $height_metres" | bc)
+    total_weight=$(echo "$total_weight + $weight_kg" | bc)
+    ((count++))
+done
+
+average_height=$(echo "$total_height $count" | awk '{printf "%.2f", $1/$2}')
+average_weight=$(echo "$total_weight $count" | awk '{printf "%.2f", $1/$2}')
+
+echo "" >> "$OUTPUT_CSV"
+echo "Average height:$average_height m" >> "$OUTPUT_CSV"
+echo "Average weight:$average_weight kg" >> "$OUTPUT_CSV"
+
+echo "Summary data saved to $OUTPUT_CSV"
