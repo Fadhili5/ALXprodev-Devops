@@ -5,10 +5,10 @@ height=$(jq -r '.height' data.json)
 weight=$(jq -r '.weight' data.json)
 type=$(jq -r '.types[0].type.name' data.json)
 
-height_metres=$(echo "$height" | awk '{printf "%.1f", $1/10}')
-weight_kg=$(echo "$weight" | awk '{printf "%.0f", $1/10}')
+formatted_height=$(echo "$height" | awk '{printf "%.1f", $1/10}')
+formatted_weight=$(echo "$weight" | awk '{printf "%.0f", $1/10}')
 
 name_formatted=$(echo "$name" | sed 's/^./\U&/')
 type_formatted=$(echo "$type" | sed 's/^./\U&/')
 
-echo "$name_formatted is of type $type_formatted, weighs ${weight_kg}kgs, and is ${height_metres}m tall."
+echo "$name_formatted is of type $type_formatted, weighs ${formatted_weight}kgs, and is ${formatted_height}m tall."
