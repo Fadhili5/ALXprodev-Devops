@@ -8,7 +8,7 @@ type=$(jq -r '.types[0].type.name' data.json)
 formatted_height=$(echo "$height" | awk '{printf "%.1f", $1/10}')
 formatted_weight=$(echo "$weight" | awk '{printf "%.0f", $1/10}')
 
-name_formatted=$(echo "$name" | sed 's/^./\U&/')
-type_formatted=$(echo "$type" | sed 's/^./\U&/')
+name=$(echo "$name" | sed 's/^./\U&/')
+type=$(echo "$type" | sed 's/^./\U&/')
 
-echo "$name_formatted is of type $type_formatted, weighs ${formatted_weight}kgs, and is ${formatted_height}m tall."
+echo "$name is of type $type, weighs ${formatted_weight}kgs, and is ${formatted_height}m tall."
