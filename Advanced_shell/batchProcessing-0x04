@@ -1,0 +1,37 @@
+#!/bin/bash
+
+POKEMON_LIST=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+BASE_API_URL="https://pokeapi.co/api/v2/pokemon"
+ERROR_FILE="errors.txt"
+
+log_error() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$ERROR_FILE"
+}
+
+fetch_pokemon() {
+    pokemon="$1"
+    pokemon_lower=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
+    API_URL="${BASE_API_URL}/${pokemon_lower}"
+    OUTPUT_FILE="${pokemon_lower}.json"
+
+    response=$(curl -s -w "%{http_code}" "$API_URL" -o "temp_${pokemon_lower}.json")
+    http_code="${response: -3}"
+
+    if [ "$http_code" -eq 200 ]; then
+        mv "temp_${pokemon_lower}.json" "$OUTPUT_FILE"
+        echo "Success: $pokemon data saved to $OUTPUT_FILE"
+    else
+        log_error "Failed to fetch $pokemon (HTTP $http_code)"
+        [ -f "temp_${pokemon_lower}.json" ] && rm "temp_${pokemon_lower}.json"
+        echo "Failed: $pokemon (HTTP $http_code)"
+        fi
+}
+
+# fetches data for each pokemon in parallel
+for pokemon in "${POKEMON_LIST[@]}"; do
+    fetch_pokemon "$pokemon" &
+done
+
+wait
+
+echo "All requests completed."
