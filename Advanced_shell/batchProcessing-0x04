@@ -30,7 +30,13 @@ fetch_pokemon() {
 # fetches data for each pokemon in parallel
 for pokemon in "${POKEMON_LIST[@]}"; do
     fetch_pokemon "$pokemon" &
+    PIDS+=($!)
 done
+
+echo "Background jobs."
+jobs
+
+kill "${PIDS[0]}" 2>/dev/null
 
 wait
 
