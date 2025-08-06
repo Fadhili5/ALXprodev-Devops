@@ -11,4 +11,4 @@ formatted_weight=$(echo "$weight" | awk '{printf "%.0f", $1/10}')
 name=$(echo "$name" | sed 's/^./\U&/')
 type=$(echo "$type" | sed 's/^./\U&/')
 
-echo "$name is of type $type, weighs ${formatted_weight}kgs, and is ${formatted_height}m tall."
+echo "$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
